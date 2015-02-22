@@ -3,9 +3,7 @@ var https = require('https');
 var querystring = require('querystring');
 var q = require('promised-io/promise');
 
-// probably a better way to do this with promises...
-var origCallback,
-    deferred;
+var deferred;
 
 var data = {
   twoWayTrip : true,
