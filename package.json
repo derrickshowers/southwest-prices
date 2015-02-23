@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "node-notifier": "^4.1.2",
     "promised-io": "^0.3.4"
   }
 }
