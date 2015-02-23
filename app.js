@@ -1,28 +1,45 @@
 var notifier = require('node-notifier');
 var path = require('path');
+var fs = require('fs');
 var Prices = require('./prices');
 
 var deals = [],
-    priceArray = [
-      '300',
-      '301',
-      '375',
-      '375',
-      '209',
-      '199',
-      '329',
-      '221',
-      '221',
-      '216',
-      '217',
-      '301',
-      '371',
-      '241',
-      '293',
-      '301',
-      '301',
-      '301'
-    ];
+    priceArray = [],
+    checkFreq = 1800000;
+
+function convertToMilliseconds(minutes) {
+  return minutes * 60000;
+}
+
+function readJSON(callback) {
+
+  fs.readFile(path.join(__dirname, '/data/prices.json'), 'utf-8', function(err, data) {
+    if (err) {
+      console.log('Uh oh, there was an error reading: ', err);
+    } else {
+      console.log('File read');
+      data = JSON.parse(data);
+
+      if (data.constructor !== Array) {
+        console.log('Hmm... data read wasn\'t an array');
+        return;
+      }
+
+      callback(data);
+    }
+  });
+}
+
+function saveJSON(obj) {
+  var jsonObj = JSON.stringify(obj);
+  fs.writeFile(path.join(__dirname, '/data/prices.json'), jsonObj, function(err) {
+    if (err) {
+      console.log('Uh oh, there was an error saving: ', err);
+    } else {
+      console.log('File saved');
+    }
+  });
+}
 
 function getNewPrices() {
   return Prices.getPrices();
@@ -86,6 +103,10 @@ function timer(delay) {
 
       // show matches in console
       //console.log('New data retrieved: ', matches);
+      console.log('New data retrieved!')
+
+      // save the matches
+      saveJSON(matches);
 
       // process the results
       newDeals = processPrices(matches);
@@ -97,7 +118,7 @@ function timer(delay) {
       }
 
       // reset the timer
-      timer(5000);
+      timer(checkFreq);
     });
   }, delay);
 }
@@ -112,8 +133,15 @@ function init() {
     returnDate: '05/23/2015'
   });
 
-  // start the timer!
-  timer();
+  // set the delay (pass in minutes)
+  checkFreq = convertToMilliseconds(30);
+
+  // get prices from last time
+  readJSON(function(data) {
+    priceArray = data;
+    // start the timer!
+    timer();
+  });
 }
 
 init();
