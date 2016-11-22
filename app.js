@@ -11,21 +11,27 @@ function convertToMilliseconds(minutes) {
   return minutes * 60000;
 }
 
-function readJSON(callback) {
+function readJSON(data, callback) {
+  console.log('File read');
+  data = JSON.parse(data);
+
+  if (data.constructor !== Array) {
+    console.log('Hmm... data read wasn\'t an array');
+    return;
+  }
+
+  callback(data);
+}
+
+function checkForJSON(callback) {
 
   fs.readFile(path.join(__dirname, '/data/prices.json'), 'utf-8', function(err, data) {
     if (err) {
-      console.log('Uh oh, there was an error reading: ', err);
+      fs.writeFile(path.join(__dirname, '/data/prices.json'), '[]', function() {
+        readJSON('[]', callback);
+      });
     } else {
-      console.log('File read');
-      data = JSON.parse(data);
-
-      if (data.constructor !== Array) {
-        console.log('Hmm... data read wasn\'t an array');
-        return;
-      }
-
-      callback(data);
+      readJSON(data, callback)
     }
   });
 }
@@ -129,15 +135,15 @@ function init() {
   Prices.setData({
     origin: 'BWI',
     destination: 'OAK',
-    outboundDate: '05/16/2015',
-    returnDate: '05/23/2015'
+    outboundDate: '11/28/2016',
+    returnDate: '11/29/2016'
   });
 
   // set the delay (pass in minutes)
   checkFreq = convertToMilliseconds(30);
 
   // get prices from last time
-  readJSON(function(data) {
+  checkForJSON(function(data) {
     priceArray = data;
     // start the timer!
     timer();
